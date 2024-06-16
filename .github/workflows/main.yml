@@ -2,7 +2,7 @@ name: Run mineo_scraper.py
 
 on:
   schedule:
-    - cron: '43 9 * * *'
+    - cron: '8 10 * * *'
 
 jobs:
   run-script:
@@ -23,4 +23,6 @@ jobs:
           pip install google-auth google-auth-oauthlib google-api-python-client selenium webdriver-manager
 
       - name: Run mineo_scraper.py
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: python mineo_scraper.py
