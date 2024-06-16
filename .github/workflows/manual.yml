@@ -1,12 +1,27 @@
-name: Manual Workflow
+name: Run mineo_scraper.py Manually
+
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run-script:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout repository content
-      uses: actions/checkout@v2
-    - name: Run a one-line script
-      run: echo "Hello, world!"
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-api-python-client selenium webdriver-manager
+
+      - name: Run mineo_scraper.py
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        run: python mineo_scraper.py
