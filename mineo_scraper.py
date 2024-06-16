@@ -24,22 +24,16 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 def get_gmail_service():
     creds = None
-    # トークンファイルが存在する場合、読み込む
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # 資格情報がないか、無効な場合、新しく取得する
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # 資格情報を保存する
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            raise Exception("No valid credentials available")
     service = build('gmail', 'v1', credentials=creds)
     return service
+
 
 
 def get_one_time_key(service):
