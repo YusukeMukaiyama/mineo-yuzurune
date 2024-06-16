@@ -163,6 +163,8 @@ try:
 
     time.sleep(3)
 
+    print("ワンタイムキーの前までは来てるよ")
+
     # Gmail APIを使用してワンタイムキーを取得
     service = get_gmail_service()
     start_time = datetime.now(timezone.utc)
