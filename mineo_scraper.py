@@ -188,16 +188,20 @@ try:
         # ページ遷移を待機
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input')))
 
-        # 要素をクリック
-        button = driver.find_element(By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input')
-        button.click()
-
-        # ボタンの状態が変化するまで待機し、その後のテキストを取得
-        WebDriverWait(driver, 10).until(
-            EC.text_to_be_present_in_element((By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input'), "変化後のテキスト")
+        # スクロールしてターゲットボタンが表示されるまで待機
+        target_button = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input'))
         )
+
+        # JavaScriptでスクロール
+        driver.execute_script("arguments[0].scrollIntoView(true);", target_button)
+
+        # ターゲットボタンをクリック
+        target_button.click()
+
         #changed_button_text = driver.find_element(By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input').get_attribute('value')
         #print(f"ボタンのテキストが変化しました: {changed_button_text}")
+        print("最後まで行ったよ")
     else:
         #print("ワンタイムキーの取得に失敗しました。タイムアウトしました。")
         pass
