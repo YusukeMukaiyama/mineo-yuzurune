@@ -38,7 +38,7 @@ def get_gmail_service():
     return service
 
 def get_one_time_key(service):
-    print("関数 get_one_time_key が呼び出されました")
+    #print("関数 get_one_time_key が呼び出されました")
     jst = timezone(timedelta(hours=9))  # 日本標準時 (JST)
     start_time_jst = datetime.now(jst) - timedelta(seconds=60)  # 現在の時刻から60秒前を計算
     # UNIXタイムスタンプに変換
@@ -49,54 +49,55 @@ def get_one_time_key(service):
 
     while datetime.now(jst) < end_time:
         try:
-            print("メールの検索を開始します")
+            #print("メールの検索を開始します")
             results = service.users().messages().list(userId='me', labelIds=['INBOX'], q=query).execute()
             messages = results.get('messages', [])
-            print(f"見つかったメールの数: {len(messages)}")
+            #print(f"見つかったメールの数: {len(messages)}")
 
             if messages:
                 for msg in messages:
-                    print("メールの詳細を取得します")
+                    #print("メールの詳細を取得します")
                     msg = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
                     msg_internal_date = int(msg['internalDate']) / 1000  # milliseconds to seconds
                     msg_internal_date_jst = datetime.fromtimestamp(msg_internal_date, tz=jst)
-                    print(f"メールの受信日時 (JST): {msg_internal_date_jst}")
+                    #print(f"メールの受信日時 (JST): {msg_internal_date_jst}")
 
                     if msg_internal_date_jst > start_time_jst:
-                        print("メールが開始時刻以降に受信されました")
+                        #print("メールが開始時刻以降に受信されました")
 
                         if 'payload' in msg:
-                            print("メールのペイロードを解析します")
+                            #print("メールのペイロードを解析します")
 
                             if 'parts' in msg['payload']:
                                 for part in msg['payload']['parts']:
                                     if part['mimeType'] == 'text/plain':
                                         data = part['body']['data']
                                         text = base64.urlsafe_b64decode(data.encode('ASCII')).decode('utf-8')
-                                        print("メール本文:")
-                                        print(text)  # 本文を出力
+                                        #print("メール本文:")
+                                        #print(text)  # 本文を出力
                                         match = re.search(r"次のワンタイムキーを10分以内に画面へ入力してください。\n\n(\d{6})", text)
                                         if match:
-                                            print("ワンタイムキーが見つかりました")
+                                            #print("ワンタイムキーが見つかりました")
                                             return match.group(1)
 
                             elif 'body' in msg['payload']:
                                 if 'data' in msg['payload']['body']:
                                     data = msg['payload']['body']['data']
                                     text = base64.urlsafe_b64decode(data.encode('ASCII')).decode('utf-8')
-                                    print("メール本文:")
-                                    print(text)  # 本文を出力
+                                    #print("メール本文:")
+                                    #print(text)  # 本文を出力
                                     match = re.search(r"次のワンタイムキーを10分以内に画面へ入力してください。\n\n(\d{6})", text)
                                     if match:
-                                        print("ワンタイムキーが見つかりました")
+                                        #print("ワンタイムキーが見つかりました")
                                         return match.group(1)
-            else:
-                print("メールが見つかりませんでした。")
+            #else:
+                #print("メールが見つかりませんでした。")
 
         except Exception as e:
-            print(f"エラーが発生しました: {e}")  # エラーメッセージを出力
+            #print(f"エラーが発生しました: {e}")  # エラーメッセージを出力
+            pass
         
-        print("ワンタイムキーが見つかりませんでした。10秒後に再試行します。")
+        #print("ワンタイムキーが見つかりませんでした。10秒後に再試行します。")
         time.sleep(10)
 
     return None
@@ -194,10 +195,11 @@ try:
         WebDriverWait(driver, 10).until(
             EC.text_to_be_present_in_element((By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input'), "変化後のテキスト")
         )
-        changed_button_text = driver.find_element(By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input').get_attribute('value')
-        print(f"ボタンのテキストが変化しました: {changed_button_text}")
+        #changed_button_text = driver.find_element(By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input').get_attribute('value')
+        #print(f"ボタンのテキストが変化しました: {changed_button_text}")
     else:
-        print("ワンタイムキーの取得に失敗しました。タイムアウトしました。")
+        #print("ワンタイムキーの取得に失敗しました。タイムアウトしました。")
+        pass
 
 finally:
     # ブラウザを閉じる
