@@ -14,28 +14,17 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, timezone, timedelta
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Gmail APIのスコープ設定
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 def get_gmail_service():
-    creds = None
-    # トークンファイルが存在する場合、そこから認証情報を読み込む
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # 認証情報が無効な場合、再認証を行う
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-    # Gmail APIサービスを構築
-    service = build('gmail', 'v1', credentials=creds, cache_discovery=False)
-    
+    flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+    creds = flow.run_local_server(port=0)
+    service = build('gmail', 'v1', credentials=creds)
     return service
+
 
 def get_one_time_key(service):
     #print("関数 get_one_time_key が呼び出されました")
