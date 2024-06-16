@@ -18,7 +18,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, timezone, timedelta
-from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Gmail APIのスコープ設定
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
