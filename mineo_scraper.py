@@ -22,6 +22,7 @@ from datetime import datetime, timezone, timedelta
 # Gmail APIのスコープ設定
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
+def get_gmail_service():
     creds = None
     # トークンファイルが存在する場合、読み込む
     if os.path.exists('token.json'):
