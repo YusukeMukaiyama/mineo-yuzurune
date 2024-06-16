@@ -20,9 +20,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 def get_gmail_service():
-    flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-    creds = flow.run_local_server(port=0)
-    service = build('gmail', 'v1', credentials=creds)
+    # GitHub Actionsの環境変数からサービスアカウントキーを取得
+    service_account_info = json.loads(os.getenv('GCP_SERVICE_ACCOUNT_KEY'))
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=['https://www.googleapis.com/auth/gmail.readonly']
+    )
+    service = build('gmail', 'v1', credentials=credentials)
     return service
 
 
