@@ -29,8 +29,15 @@ def get_gmail_service():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            # 更新されたトークン情報を保存
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
         else:
-            raise Exception("No valid credentials available")
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+            # 新しいトークン情報を保存
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
     service = build('gmail', 'v1', credentials=creds)
     return service
 
