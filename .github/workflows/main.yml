@@ -1,0 +1,26 @@
+name: Run Python script daily
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 毎日朝7時（日本時間ではUTCの22時）に実行
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client selenium webdriver-manager
+
+      - name: Run Python script
+        run: python mineo_scraper.py
