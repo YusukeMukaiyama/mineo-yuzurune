@@ -107,6 +107,7 @@ def get_one_time_key(service):
 # Chromeの設定
 chrome_options = Options()
 chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
