@@ -2,7 +2,7 @@ name: Run mineo_scraper.py
 
 on:
   schedule:
-    - cron: '8 10 * * *'
+    - cron: '11 10 * * *'
 
 jobs:
   run-script:
