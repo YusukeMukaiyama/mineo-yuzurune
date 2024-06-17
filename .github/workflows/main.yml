@@ -2,7 +2,7 @@ name: Run mineo_scraper.py
 
 on:
   schedule:
-    - cron: '40 6 * * *'  # 毎日5:30 UTC(日本時間13:30)に実行
+    - cron: '41 6 * * *'  # 毎日5:30 UTC(日本時間13:30)に実行
 
 jobs:
   run-script:
