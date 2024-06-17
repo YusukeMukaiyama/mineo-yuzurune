@@ -22,9 +22,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-auth google-auth-oauthlib google-api-python-client selenium webdriver-manager
 
-      - name: Create token.json from secret
-        run: echo "${{ secrets.TOKEN_JSON }}" > token.json
-
       - name: Run mineo_scraper.py
         env:
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
