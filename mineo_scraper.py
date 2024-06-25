@@ -23,6 +23,7 @@ def get_gmail_service():
     creds = None
     token_path = 'token.json'
     creds_path = 'credentials.json'
+    
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, SCOPES)
     
@@ -35,22 +36,14 @@ def get_gmail_service():
                     token.write(creds.to_json())
             except Exception as e:
                 print(f"リフレッシュトークンの更新に失敗しました: {e}")
-                # トークンファイルを削除して再認証
-                if os.path.exists(token_path):
-                    os.remove(token_path)
-                flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
-                creds = flow.run_local_server(port=0)
-                # 新しいトークン情報を保存
-                with open(token_path, 'w') as token:
-                    token.write(creds.to_json())
-        else:
-            # 初回認証
+                creds = None
+        
+        if not creds:
             flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
-            creds = flow.run_local_server(port=0)
-            # 新しいトークン情報を保存
+            creds = flow.run_console()  # 手動で認証コードを入力するフローに変更
             with open(token_path, 'w') as token:
                 token.write(creds.to_json())
-
+    
     return build('gmail', 'v1', credentials=creds)
 
 def get_one_time_key(service):
