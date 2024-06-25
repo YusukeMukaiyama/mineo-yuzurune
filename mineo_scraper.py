@@ -31,6 +31,7 @@ def get_gmail_service():
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
+                print("トークンをリフレッシュしました。")
                 # 更新されたトークン情報を保存
                 with open(token_path, 'w') as token:
                     token.write(creds.to_json())
@@ -39,8 +40,9 @@ def get_gmail_service():
                 creds = None
         
         if not creds:
+            print("新しい認証を行います。")
             flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
-            creds = flow.run_console()  # 手動で認証コードを入力するフローに変更
+            creds = flow.run_local_server(port=0)
             with open(token_path, 'w') as token:
                 token.write(creds.to_json())
     
