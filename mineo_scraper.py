@@ -1,10 +1,13 @@
-import os
+import os.path
 import re
 import base64
 import time
+import os
 import json
-from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from selenium import webdriver
@@ -21,36 +24,30 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 def get_gmail_service():
     creds = None
-    token_path = 'token.json'
-    creds_path = 'credentials.json'
-    
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-    
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            try:
-                creds.refresh(Request())
-                print("トークンをリフレッシュしました。")
-                # 更新されたトークン情報を保存
-                with open(token_path, 'w') as token:
-                    token.write(creds.to_json())
-            except Exception as e:
-                print(f"リフレッシュトークンの更新に失敗しました: {e}")
-                creds = None
-        
-        if not creds:
-            print("新しい認証を行います。")
-            flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
-            creds = flow.run_local_server(port=0)
-            with open(token_path, 'w') as token:
+            creds.refresh(Request())
+            # 更新されたトークン情報を保存
+            with open('token.json', 'w') as token:
                 token.write(creds.to_json())
-    
-    return build('gmail', 'v1', credentials=creds)
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+            # 新しいトークン情報を保存
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
+    service = build('gmail', 'v1', credentials=creds)
+    return service
+
+
 
 def get_one_time_key(service):
+    #print("関数 get_one_time_key が呼び出されました")
     jst = timezone(timedelta(hours=9))  # 日本標準時 (JST)
     start_time_jst = datetime.now(jst) - timedelta(seconds=60)  # 現在の時刻から60秒前を計算
+    # UNIXタイムスタンプに変換
     start_time_unix = int(start_time_jst.timestamp())
     query = f"from:info@eonet.ne.jp subject:【オプテージ】ワンタイムキーのお知らせ after:{start_time_unix}"
 
@@ -58,36 +55,60 @@ def get_one_time_key(service):
 
     while datetime.now(jst) < end_time:
         try:
+            #print("メールの検索を開始します")
             results = service.users().messages().list(userId='me', labelIds=['INBOX'], q=query).execute()
             messages = results.get('messages', [])
+            #print(f"見つかったメールの数: {len(messages)}")
+
             if messages:
                 for msg in messages:
+                    #print("メールの詳細を取得します")
                     msg = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
                     msg_internal_date = int(msg['internalDate']) / 1000  # milliseconds to seconds
                     msg_internal_date_jst = datetime.fromtimestamp(msg_internal_date, tz=jst)
+                    #print(f"メールの受信日時 (JST): {msg_internal_date_jst}")
+
                     if msg_internal_date_jst > start_time_jst:
+                        #print("メールが開始時刻以降に受信されました")
+
                         if 'payload' in msg:
+                            #print("メールのペイロードを解析します")
+
                             if 'parts' in msg['payload']:
                                 for part in msg['payload']['parts']:
                                     if part['mimeType'] == 'text/plain':
                                         data = part['body']['data']
                                         text = base64.urlsafe_b64decode(data.encode('ASCII')).decode('utf-8')
+                                        #print("メール本文:")
+                                        #print(text)  # 本文を出力
                                         match = re.search(r"次のワンタイムキーを10分以内に画面へ入力してください。\n\n(\d{6})", text)
                                         if match:
+                                            #print("ワンタイムキーが見つかりました")
                                             return match.group(1)
+
                             elif 'body' in msg['payload']:
                                 if 'data' in msg['payload']['body']:
                                     data = msg['payload']['body']['data']
                                     text = base64.urlsafe_b64decode(data.encode('ASCII')).decode('utf-8')
+                                    #print("メール本文:")
+                                    #print(text)  # 本文を出力
                                     match = re.search(r"次のワンタイムキーを10分以内に画面へ入力してください。\n\n(\d{6})", text)
                                     if match:
+                                        #print("ワンタイムキーが見つかりました")
                                         return match.group(1)
+            #else:
+                #print("メールが見つかりませんでした。")
+
         except Exception as e:
-            print(f"エラーが発生しました: {e}")  # エラーメッセージを出力
+            #print(f"エラーが発生しました: {e}")  # エラーメッセージを出力
             pass
         
+        #print("ワンタイムキーが見つかりませんでした。10秒後に再試行します。")
         time.sleep(10)
+
     return None
+
+
 
 # Chromeの設定
 chrome_options = Options()
@@ -186,9 +207,13 @@ try:
         # ターゲットボタンをクリック
         target_button.click()
 
+        #changed_button_text = driver.find_element(By.XPATH, '//*[@id="boxData"]/div[1]/div[4]/p/input').get_attribute('value')
+        #print(f"ボタンのテキストが変化しました: {changed_button_text}")
         print("最後まで行ったよ")
     else:
-        print("ワンタイムキーの取得に失敗しました。タイムアウトしました。")
+        #print("ワンタイムキーの取得に失敗しました。タイムアウトしました。")
+        pass
+
 finally:
     # ブラウザを閉じる
     driver.quit()
